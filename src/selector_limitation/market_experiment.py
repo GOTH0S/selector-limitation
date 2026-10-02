@@ -326,29 +326,30 @@ def summarize(
 
     output = []
     for (budget, selector), group in sorted(grouped.items()):
-        def mean(field: str) -> float:
-            return float(
-                np.mean([float(row[field]) for row in group])
-            )
-
         output.append(
             {
                 "budget": budget,
                 "selector": selector,
                 "search_seeds": len(group),
-                "mean_selected_test_sharpe": mean(
-                    "selected_test_sharpe"
+                "mean_selected_test_sharpe": float(
+                    np.mean([float(row["selected_test_sharpe"]) for row in group])
                 ),
-                "mean_oracle_test_sharpe": mean(
-                    "oracle_test_sharpe"
+                "mean_oracle_test_sharpe": float(
+                    np.mean([float(row["oracle_test_sharpe"]) for row in group])
                 ),
-                "mean_selection_regret": mean("selection_regret"),
-                "mean_frontier_efficiency": mean(
-                    "frontier_efficiency"
+                "mean_selection_regret": float(
+                    np.mean([float(row["selection_regret"]) for row in group])
                 ),
-                "selected_positive_rate": mean("selected_positive"),
-                "mean_validation_test_rank_corr": mean(
-                    "validation_test_rank_corr"
+                "mean_frontier_efficiency": float(
+                    np.mean([float(row["frontier_efficiency"]) for row in group])
+                ),
+                "selected_positive_rate": float(
+                    np.mean([float(row["selected_positive"]) for row in group])
+                ),
+                "mean_validation_test_rank_corr": float(
+                    np.mean(
+                        [float(row["validation_test_rank_corr"]) for row in group]
+                    )
                 ),
             }
         )
