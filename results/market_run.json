@@ -10,20 +10,105 @@
   "candidates": 2670,
   "cost_bps": 5.0,
   "development_folds": [
-    ["2010-01-04", "2011-12-30"],
-    ["2012-01-03", "2013-12-31"],
-    ["2014-01-02", "2015-12-31"],
-    ["2016-01-04", "2017-12-29"]
+    [
+      "2010-01-04",
+      "2011-12-30"
+    ],
+    [
+      "2012-01-03",
+      "2013-12-31"
+    ],
+    [
+      "2014-01-02",
+      "2015-12-31"
+    ],
+    [
+      "2016-01-04",
+      "2017-12-29"
+    ]
   ],
-  "test_period": ["2018-01-02", "2019-12-31"],
+  "test_period": [
+    "2018-01-02",
+    "2019-12-31"
+  ],
   "search_seeds": 100,
-  "workflow_run": 36999910646,
-  "workflow_artifact_sha256": "a047222a2a21e9bb94f8aef28c8bb2ef0e94a154cbfc349e0d0ccfa9388c9607",
-  "source_code_commit": "ef056c840f6259228b06f465edfd1d84ad287bf4",
-  "notes": [
-    "Signals use information through date t and earn returns realized on date t+1.",
-    "P&L is labelled on the realization date.",
-    "The future oracle is diagnostic only and is never available to selection.",
-    "The source snapshot is reproducible but is not a contemporaneous point-in-time market database."
+  "max_budget_summary": [
+    {
+      "budget": 2670,
+      "selector": "bootstrap_lcb",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "family_balanced",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "mean_fold",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "mean_rank",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "nested_complexity",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "single_fold",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": -0.37907879796941096,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 2.238025145311361,
+      "mean_frontier_efficiency": -0.11659939738439473,
+      "selected_positive_rate": 0.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "stability_lcb",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    }
   ]
 }
