@@ -64,3 +64,39 @@ python -m selector_limitation.family_experiment --out results/family_search_swee
 ```
 
 Both sweeps write machine-readable CSV artifacts. Latent quality is used only for evaluation; neither search policy nor the selector can inspect it.
+
+## Experiment 3 — selector recovery
+
+The original question is not only whether search becomes harder to trust as it expands. It is whether a better selector can recover more of the frontier that search has already discovered.
+
+This experiment freezes each search trace and gives six selectors the same five validation folds. Latent quality remains hidden until evaluation:
+
+- `single_fold_winner`: the original one-shot validation winner;
+- `mean_fold_winner`: highest mean score across five folds;
+- `mean_rank`: best average rank across folds;
+- `stability_penalty`: mean score minus one standard error;
+- `hierarchical_shrinkage`: shrink candidate scores toward their family centre;
+- `family_balanced`: choose a family by its median candidate score before selecting within it.
+
+At a 1,000-candidate budget across 1,000 seeds:
+
+| search | selector | selected quality | regret | frontier efficiency | best-family hit rate |
+|---|---|---:|---:|---:|---:|
+| uniform | single fold | 0.902 | 1.420 | 0.386 | 29.5% |
+| uniform | five-fold mean | 1.160 | 1.162 | 0.500 | 29.0% |
+| uniform | hierarchical shrinkage | 1.162 | 1.160 | 0.501 | 29.7% |
+| uniform | family-balanced | **1.177** | **1.145** | **0.507** | 30.1% |
+| winner-following | single fold | 0.953 | 1.224 | 0.282 | 28.7% |
+| winner-following | five-fold mean | **1.268** | **0.909** | **0.500** | 28.7% |
+| winner-following | hierarchical shrinkage | 1.257 | 0.920 | 0.491 | 28.6% |
+| winner-following | family-balanced | 1.226 | 0.951 | 0.451 | 29.5% |
+
+Two things matter. First, repeated validation recovers a large fraction of the loss caused by one noisy fold: frontier efficiency rises from roughly 0.39 to 0.50 under broad search and from 0.28 to 0.50 after winner-following. Second, there is no universally best correction. Family balancing helps when search remains broad, but once the search policy has concentrated almost all proposals into one lineage, reweighting families at selection time cannot undo the missing candidates and slightly hurts realised quality.
+
+That is the distinction this repository is intended to make: **selection can repair noisy choice among discovered candidates, but it cannot recover a frontier the search process failed to generate.**
+
+Run the selector comparison with:
+
+```bash
+python -m selector_limitation.selector_experiment --out results/selector_sweep.csv
+```
