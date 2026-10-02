@@ -10,7 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .candidate_zoo import CandidateSpec, build_candidate_zoo, candidate_returns
-from .market_data import PricePanel, load_snapshot
+from .market_data import SOURCE_COMMIT, SOURCE_SHA256, PricePanel, load_snapshot
 
 FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int64]
@@ -23,6 +23,7 @@ DEV_FOLDS = (
     ("2016-01-04", "2017-12-29"),
 )
 TEST_PERIOD = ("2018-01-02", "2019-12-31")
+COST_BPS = 5.0
 PENALTY_GRID = (0.0, 0.025, 0.05, 0.10, 0.20)
 
 
@@ -356,6 +357,46 @@ def summarize(
     return output
 
 
+def summarize_ensemble(
+    rows: list[dict[str, float | int | str]],
+) -> list[dict[str, float | int]]:
+    grouped: dict[int, list[dict[str, float | int | str]]] = {}
+    for row in rows:
+        grouped.setdefault(int(row["budget"]), []).append(row)
+
+    output: list[dict[str, float | int]] = []
+    for budget, group in sorted(grouped.items()):
+        output.append(
+            {
+                "budget": budget,
+                "search_seeds": len(group),
+                "mean_ensemble_test_sharpe": float(
+                    np.mean([float(row["ensemble_test_sharpe"]) for row in group])
+                ),
+                "mean_oracle_candidate_test_sharpe": float(
+                    np.mean(
+                        [
+                            float(row["oracle_candidate_test_sharpe"])
+                            for row in group
+                        ]
+                    )
+                ),
+                "mean_ensemble_minus_mean_candidate": float(
+                    np.mean(
+                        [
+                            float(row["ensemble_minus_mean_candidate"])
+                            for row in group
+                        ]
+                    )
+                ),
+                "ensemble_positive_rate": float(
+                    np.mean([float(row["ensemble_positive"]) for row in group])
+                ),
+            }
+        )
+    return output
+
+
 def _write_csv(
     rows: list[dict[str, float | int | str]], path: Path
 ) -> None:
@@ -406,9 +447,19 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/market_ensemble.csv"),
     )
     parser.add_argument(
+        "--ensemble-summary-out",
+        type=Path,
+        default=Path("results/market_ensemble_summary.csv"),
+    )
+    parser.add_argument(
         "--zoo-out",
         type=Path,
         default=Path("results/candidate_zoo.csv"),
+    )
+    parser.add_argument(
+        "--run-out",
+        type=Path,
+        default=Path("results/market_run.json"),
     )
     parser.add_argument("--search-seeds", type=int, default=100)
     return parser.parse_args()
@@ -418,7 +469,7 @@ def main() -> None:
     args = parse_args()
     panel = load_snapshot(args.cache, end_date="2019-12-31")
     specs = build_candidate_zoo()
-    returns = candidate_returns(panel, specs, cost_bps=5.0)
+    returns = candidate_returns(panel, specs, cost_bps=COST_BPS)
     rows, ensemble_rows = run_market_sweep(
         panel,
         specs,
@@ -426,15 +477,24 @@ def main() -> None:
         search_seeds=args.search_seeds,
     )
     summary = summarize(rows)
+    ensemble_summary = summarize_ensemble(ensemble_rows)
     _write_csv(rows, args.out)
     _write_csv(summary, args.summary_out)
     _write_csv(ensemble_rows, args.ensemble_out)
+    _write_csv(ensemble_summary, args.ensemble_summary_out)
     _write_candidate_manifest(specs, args.zoo_out)
 
     payload = {
+        "data_source": {
+            "repository": "marcoreyess22/jump-risk-engine",
+            "commit": SOURCE_COMMIT,
+            "path": "data/prices.csv",
+            "sha256": SOURCE_SHA256,
+        },
         "data_start": str(panel.dates[0]),
         "data_end": str(panel.dates[-1]),
         "candidates": len(specs),
+        "cost_bps": COST_BPS,
         "development_folds": DEV_FOLDS,
         "test_period": TEST_PERIOD,
         "search_seeds": args.search_seeds,
@@ -442,6 +502,11 @@ def main() -> None:
             row for row in summary if row["budget"] == len(specs)
         ],
     }
+    args.run_out.parent.mkdir(parents=True, exist_ok=True)
+    args.run_out.write_text(
+        json.dumps(payload, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(
         "MARKET_SUMMARY_JSON="
         + json.dumps(payload, separators=(",", ":"))
