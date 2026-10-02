@@ -285,7 +285,7 @@ def candidate_returns(
             weights - np.vstack([np.zeros((1, weights.shape[1])), weights[:-1]])
         ).sum(axis=1)
         pnl = np.zeros(prices.shape[0], dtype=np.float64)
-        pnl[:-1] = np.sum(weights[:-1] * daily_returns[1:], axis=1)
-        pnl[:-1] -= turnover[:-1] * (cost_bps / 10_000.0)
+        pnl[1:] = np.sum(weights[:-1] * daily_returns[1:], axis=1)
+        pnl[1:] -= turnover[:-1] * (cost_bps / 10_000.0)
         output[:, column] = pnl
     return output
