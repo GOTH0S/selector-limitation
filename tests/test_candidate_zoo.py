@@ -45,3 +45,15 @@ def test_future_price_change_does_not_change_earlier_pnl() -> None:
         spec,
     )
     np.testing.assert_array_equal(original[:-2], changed[:-2])
+
+
+def test_pnl_is_labeled_on_realization_date() -> None:
+    dates = np.arange(np.datetime64("2010-01-01"), np.datetime64("2010-01-08"))
+    path = np.array([100, 101, 102, 103, 104, 105, 110], dtype=float)
+    prices = np.repeat(path[:, None], 8, axis=1)
+    panel = PricePanel(dates=dates, tickers=UNIVERSE, prices=prices)
+    from selector_limitation.candidate_zoo import CandidateSpec
+    spec = (CandidateSpec("ts_momentum", 5, 0, "all", 1, "sign", 2),)
+    returns = candidate_returns(panel, spec, cost_bps=0.0)[:, 0]
+    assert returns[5] == 0.0
+    assert returns[6] > 0.0
