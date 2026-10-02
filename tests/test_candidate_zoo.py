@@ -4,7 +4,7 @@ from selector_limitation.candidate_zoo import (
     build_candidate_zoo,
     candidate_returns,
 )
-from selector_limitation.market_data import PricePanel, UNIVERSE
+from selector_limitation.market_data import UNIVERSE, PricePanel
 
 
 def toy_panel(rows: int = 320) -> PricePanel:
