@@ -2,7 +2,7 @@
 
 More search is only useful if selection keeps up.
 
-Suppose a research process generates (N) candidate signals. Candidate (i) has an unknown true quality (q_i), while the researcher sees only a noisy validation estimate. As the search expands, the best candidate *discovered* can improve much faster than the candidate the research process can reliably *identify*.
+Suppose a research process generates `N` candidate signals. Candidate `i` has an unknown true quality `q_i`, while the researcher sees only a noisy validation estimate. As the search expands, the best candidate *discovered* can improve much faster than the candidate the research process can reliably *identify*.
 
 This repository separates those two problems:
 
@@ -77,7 +77,7 @@ The source history starts in 2007; this experiment hard-stops it on **2019-12-31
 
 **Candidate zoo.** 2,670 deterministic, generic price-only hypotheses assembled from textbook primitives: time-series and cross-sectional momentum/reversal, moving-average gaps, breakouts, volatility-adjusted momentum and trend acceleration; multiple lookbacks, simple market-state gates, 1/5/20-day rebalance intervals and sign/linear transforms. Each candidate carries family and complexity metadata. Trading costs are 5 bps per unit of turnover.
 
-A signal computed with date-(t) information earns only date-(t+1) return, and P&L is labelled on the realization date. The boundary convention is regression-tested.
+A signal computed with date-`t` information earns only date-`t+1` return, and P&L is labelled on the realization date. The boundary convention is regression-tested.
 
 **Protocol.**
 
