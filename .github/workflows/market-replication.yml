@@ -36,4 +36,6 @@ jobs:
             results/market_sweep.csv
             results/market_summary.csv
             results/market_ensemble.csv
+            results/market_ensemble_summary.csv
+            results/market_run.json
             results/candidate_zoo.csv
