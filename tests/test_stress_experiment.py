@@ -5,6 +5,7 @@ from selector_limitation.market_data import UNIVERSE, PricePanel
 from selector_limitation.stress_experiment import (
     PERIODS,
     UNIVERSES,
+    _stable_argmax,
     failure_status,
     subset_panel,
     validate_period,
@@ -49,3 +50,11 @@ def test_failure_bins_are_deterministic() -> None:
     assert failure_status(1.0, 0.1, 0.10) == "WEAK_CAPTURE"
     assert failure_status(1.0, 0.3, 0.30) == "PARTIAL_CAPTURE"
     assert failure_status(1.0, 0.6, 0.60) == "STRONG_CAPTURE"
+
+
+def test_stable_argmax_ignores_subset_order_for_ties() -> None:
+    scores = np.array([0.0, 2.0, 2.0, 1.0])
+    left = np.array([2, 1, 3], dtype=np.int64)
+    right = np.array([1, 3, 2], dtype=np.int64)
+    assert _stable_argmax(left, scores) == 1
+    assert _stable_argmax(right, scores) == 1
