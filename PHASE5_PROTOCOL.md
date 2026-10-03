@@ -58,11 +58,12 @@ Conceptual slices:
 - GLOBAL_EQ5: SPY, QQQ, IWM, EFA, EEM
 - CROSS_ASSET4: SPY, TLT, GLD, DBC
 - EQ_BOND6: SPY, QQQ, IWM, EFA, EEM, TLT
-- EQ_REAL7: SPY, QQQ, IWM, EFA, EEM, GLD, DBC
+- EQ_REAL7_LOO_TLT: SPY, QQQ, IWM, EFA, EEM, GLD, DBC
 
 Systematic sensitivity slices additionally remove one non-SPY asset at a time
-from FULL8. SPY is never removed because doing so would alter the meaning of the
-frozen state gates.
+from FULL8. The TLT removal is identical to `EQ_REAL7_LOO_TLT`, so that unique
+asset set is counted once while serving both roles. SPY is never removed because
+doing so would alter the meaning of the frozen state gates.
 
 ## Search budgets
 
@@ -89,7 +90,7 @@ The factorial period × universe grid evaluates:
 The block-bootstrap LCB is computationally heavier and stochastic conditional
 on its resampling seed. It is therefore stress-tested across all four **period**
 windows on FULL8 with the same 128-draw implementation and fixed bootstrap seed
-used in Phase 4, but it is not included in the 13-universe factorial grid. This
+used in Phase 4, but it is not included in the 12-universe factorial grid. This
 is an explicit scope choice, not a result-driven omission.
 
 ## Failure map
