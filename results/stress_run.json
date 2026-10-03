@@ -1,0 +1,198 @@
+{
+  "data_source": {
+    "repository": "marcoreyess22/jump-risk-engine",
+    "commit": "3187e756957af549e54e470e8064dbe782d319b8",
+    "path": "data/prices.csv",
+    "sha256": "0f1c7534aed1afc5d431be99f5c0357243e7357905e60b74b40a8711689f71bd"
+  },
+  "candidate_count": 2670,
+  "cost_bps": 5.0,
+  "search_seeds": 100,
+  "budgets": [
+    25,
+    100,
+    500,
+    1000,
+    2670
+  ],
+  "periods": [
+    {
+      "name": "P12_13",
+      "development_folds": [
+        [
+          "2008-01-02",
+          "2009-12-31"
+        ],
+        [
+          "2010-01-04",
+          "2011-12-30"
+        ]
+      ],
+      "test_period": [
+        "2012-01-03",
+        "2013-12-31"
+      ]
+    },
+    {
+      "name": "P14_15",
+      "development_folds": [
+        [
+          "2010-01-04",
+          "2011-12-30"
+        ],
+        [
+          "2012-01-03",
+          "2013-12-31"
+        ]
+      ],
+      "test_period": [
+        "2014-01-02",
+        "2015-12-31"
+      ]
+    },
+    {
+      "name": "P16_17",
+      "development_folds": [
+        [
+          "2012-01-03",
+          "2013-12-31"
+        ],
+        [
+          "2014-01-02",
+          "2015-12-31"
+        ]
+      ],
+      "test_period": [
+        "2016-01-04",
+        "2017-12-29"
+      ]
+    },
+    {
+      "name": "P18_19",
+      "development_folds": [
+        [
+          "2014-01-02",
+          "2015-12-31"
+        ],
+        [
+          "2016-01-04",
+          "2017-12-29"
+        ]
+      ],
+      "test_period": [
+        "2018-01-02",
+        "2019-12-31"
+      ]
+    }
+  ],
+  "universes": {
+    "FULL8": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "US3": [
+      "SPY",
+      "QQQ",
+      "IWM"
+    ],
+    "GLOBAL_EQ5": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM"
+    ],
+    "CROSS_ASSET4": [
+      "SPY",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "EQ_BOND6": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT"
+    ],
+    "EQ_REAL7_LOO_TLT": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "GLD",
+      "DBC"
+    ],
+    "LOO_QQQ": [
+      "SPY",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "LOO_IWM": [
+      "SPY",
+      "QQQ",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "LOO_EFA": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EEM",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "LOO_EEM": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "TLT",
+      "GLD",
+      "DBC"
+    ],
+    "LOO_GLD": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "DBC"
+    ],
+    "LOO_DBC": [
+      "SPY",
+      "QQQ",
+      "IWM",
+      "EFA",
+      "EEM",
+      "TLT",
+      "GLD"
+    ]
+  },
+  "phase4_reproduction": {
+    "oracle_test_sharpe": 1.8589463473419503,
+    "mean_fold_selected_test_sharpe": 0.5618176772530484
+  },
+  "failure_bins": {
+    "low_identifiability_abs_rank_corr_lt": 0.1,
+    "weak_capture_efficiency_lt": 0.25,
+    "strong_capture_efficiency_gte": 0.5
+  }
+}
