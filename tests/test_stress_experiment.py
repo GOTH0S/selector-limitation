@@ -22,7 +22,7 @@ def toy_panel() -> PricePanel:
 
 
 def test_all_stress_universes_keep_spy_first() -> None:
-    assert len(UNIVERSES) == 13
+    assert len(UNIVERSES) == 12
     assert all(tickers[0] == "SPY" for tickers in UNIVERSES.values())
 
 
@@ -58,3 +58,7 @@ def test_stable_argmax_ignores_subset_order_for_ties() -> None:
     right = np.array([1, 3, 2], dtype=np.int64)
     assert _stable_argmax(left, scores) == 1
     assert _stable_argmax(right, scores) == 1
+
+
+def test_stress_universes_are_unique_asset_sets() -> None:
+    assert len(set(UNIVERSES.values())) == len(UNIVERSES)
