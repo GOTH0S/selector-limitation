@@ -7,6 +7,7 @@ on:
       - "src/selector_limitation/market_experiment.py"
       - "src/selector_limitation/candidate_zoo.py"
       - "PHASE5_PROTOCOL.md"
+      - "tests/test_stress_experiment.py"
       - ".github/workflows/stress-replication.yml"
   pull_request:
     paths:
@@ -14,6 +15,7 @@ on:
       - "src/selector_limitation/market_experiment.py"
       - "src/selector_limitation/candidate_zoo.py"
       - "PHASE5_PROTOCOL.md"
+      - "tests/test_stress_experiment.py"
       - ".github/workflows/stress-replication.yml"
   workflow_dispatch:
 
