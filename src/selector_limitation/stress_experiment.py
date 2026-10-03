@@ -15,7 +15,6 @@ from .market_experiment import (
     COST_BPS,
     MarketScores,
     _date_mask,
-    _greedy_diverse_ensemble,
     _selected_metrics,
     annualized_sharpe,
     rank_correlation,
@@ -155,6 +154,57 @@ def score_period(
     )
 
 
+
+
+def _stable_argmax(indices: IntArray, scores: FloatArray) -> int:
+    values = scores[indices]
+    best = np.max(values)
+    tied = indices[values == best]
+    return int(np.min(tied))
+
+
+def _stable_diverse_ensemble(
+    subset: IntArray,
+    mean_fold: FloatArray,
+    development_returns: FloatArray,
+    *,
+    k: int = 5,
+    correlation_penalty: float = 0.25,
+) -> IntArray:
+    order = np.lexsort((subset, -mean_fold[subset]))
+    pool = subset[order][: min(100, subset.size)]
+    chosen: list[int] = []
+    for _ in range(min(k, pool.size)):
+        best_index = None
+        best_score = -np.inf
+        for candidate in pool:
+            idx = int(candidate)
+            if idx in chosen:
+                continue
+            penalty = 0.0
+            if chosen:
+                corr = np.corrcoef(
+                    development_returns[:, idx],
+                    development_returns[:, chosen].mean(axis=1),
+                )[0, 1]
+                penalty = correlation_penalty * (
+                    0.0 if np.isnan(corr) else corr
+                )
+            score = float(mean_fold[idx] - penalty)
+            if (
+                score > best_score
+                or (
+                    score == best_score
+                    and (best_index is None or idx < best_index)
+                )
+            ):
+                best_score = score
+                best_index = idx
+        if best_index is not None:
+            chosen.append(best_index)
+    return np.asarray(chosen, dtype=np.int64)
+
+
 def _record(
     *,
     period: str,
@@ -213,7 +263,7 @@ def run_cell(
             rank_corr = rank_correlation(mean_fold[subset], subset_test)
 
             for selector, all_scores in selections.items():
-                selected = int(subset[np.argmax(all_scores[subset])])
+                selected = _stable_argmax(subset, all_scores)
                 rows.append(
                     _record(
                         period=period.name,
@@ -229,7 +279,7 @@ def run_cell(
                     )
                 )
 
-            members = _greedy_diverse_ensemble(
+            members = _stable_diverse_ensemble(
                 subset,
                 mean_fold,
                 scores.development_returns,
