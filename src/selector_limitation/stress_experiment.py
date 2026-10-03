@@ -86,13 +86,15 @@ BASE_UNIVERSES: dict[str, tuple[str, ...]] = {
     "GLOBAL_EQ5": ("SPY", "QQQ", "IWM", "EFA", "EEM"),
     "CROSS_ASSET4": ("SPY", "TLT", "GLD", "DBC"),
     "EQ_BOND6": ("SPY", "QQQ", "IWM", "EFA", "EEM", "TLT"),
-    "EQ_REAL7": ("SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "DBC"),
+    "EQ_REAL7_LOO_TLT": ("SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "DBC"),
 }
 
 FULL8 = BASE_UNIVERSES["FULL8"]
 UNIVERSES: dict[str, tuple[str, ...]] = dict(BASE_UNIVERSES)
 for ticker in FULL8[1:]:
-    UNIVERSES[f"LOO_{ticker}"] = tuple(x for x in FULL8 if x != ticker)
+    candidate = tuple(x for x in FULL8 if x != ticker)
+    if candidate not in UNIVERSES.values():
+        UNIVERSES[f"LOO_{ticker}"] = candidate
 
 
 def subset_panel(panel: PricePanel, tickers: tuple[str, ...]) -> PricePanel:
