@@ -275,9 +275,6 @@ def summarize(
     for key, group in sorted(groups.items()):
         period, universe, budget, selector = key
 
-        def average(field: str) -> float:
-            return float(np.mean([float(row[field]) for row in group]))
-
         output.append(
             {
                 "period": period,
@@ -285,20 +282,40 @@ def summarize(
                 "budget": budget,
                 "selector": selector,
                 "search_seeds": len(group),
-                "mean_selected_test_sharpe": average(
-                    "selected_test_sharpe"
+                "mean_selected_test_sharpe": float(
+                    np.mean(
+                        [float(row["selected_test_sharpe"]) for row in group]
+                    )
                 ),
-                "mean_oracle_test_sharpe": average("oracle_test_sharpe"),
-                "mean_candidate_test_sharpe": average(
-                    "mean_candidate_test_sharpe"
+                "mean_oracle_test_sharpe": float(
+                    np.mean([float(row["oracle_test_sharpe"]) for row in group])
                 ),
-                "mean_selection_regret": average("selection_regret"),
-                "mean_frontier_efficiency": average(
-                    "frontier_efficiency"
+                "mean_candidate_test_sharpe": float(
+                    np.mean(
+                        [
+                            float(row["mean_candidate_test_sharpe"])
+                            for row in group
+                        ]
+                    )
                 ),
-                "selected_positive_rate": average("selected_positive"),
-                "mean_validation_test_rank_corr": average(
-                    "validation_test_rank_corr"
+                "mean_selection_regret": float(
+                    np.mean([float(row["selection_regret"]) for row in group])
+                ),
+                "mean_frontier_efficiency": float(
+                    np.mean(
+                        [float(row["frontier_efficiency"]) for row in group]
+                    )
+                ),
+                "selected_positive_rate": float(
+                    np.mean([float(row["selected_positive"]) for row in group])
+                ),
+                "mean_validation_test_rank_corr": float(
+                    np.mean(
+                        [
+                            float(row["validation_test_rank_corr"])
+                            for row in group
+                        ]
+                    )
                 ),
             }
         )
