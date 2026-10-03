@@ -162,6 +162,8 @@ def _family_balanced_score(
 def selector_scores(
     scores: MarketScores,
     specs: tuple[CandidateSpec, ...],
+    *,
+    include_bootstrap: bool = True,
 ) -> dict[str, FloatArray]:
     folds = scores.fold_scores
     complexity = np.array(
@@ -172,7 +174,7 @@ def selector_scores(
     nested_penalty = _nested_complexity_penalty(folds, complexity)
 
     standard_error = folds.std(axis=1, ddof=1) / np.sqrt(folds.shape[1])
-    return {
+    output = {
         "single_fold": folds[:, 0],
         "mean_fold": folds.mean(axis=1),
         "mean_rank": _mean_rank(folds),
@@ -181,8 +183,10 @@ def selector_scores(
         "nested_complexity": (
             folds.mean(axis=1) - nested_penalty * normalized_complexity
         ),
-        "bootstrap_lcb": _bootstrap_lcb(scores.development_returns),
     }
+    if include_bootstrap:
+        output["bootstrap_lcb"] = _bootstrap_lcb(scores.development_returns)
+    return output
 
 
 def _greedy_diverse_ensemble(
