@@ -190,6 +190,14 @@
     "oracle_test_sharpe": 1.8589463473419503,
     "mean_fold_selected_test_sharpe": 0.5618176772530484
   },
+  "failure_map_scope": "single-candidate selectors only",
+  "expansion_map": {
+    "start_budget": 25,
+    "full_budget": 2670,
+    "classification": "sign-based; no tuned thresholds",
+    "paired_by_search_seed": true
+  },
+  "ensemble_scope": "full-budget mitigation stress; not assigned candidate selection regret",
   "failure_bins": {
     "low_identifiability_abs_rank_corr_lt": 0.1,
     "weak_capture_efficiency_lt": 0.25,
