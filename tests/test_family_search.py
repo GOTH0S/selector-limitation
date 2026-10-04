@@ -61,7 +61,11 @@ def test_family_trial_metrics_are_bounded() -> None:
 def test_family_sweep_shape() -> None:
     rows = run_family_sweep(seeds=2)
     assert len(rows) == 21
-    assert {row["mode"] for row in rows} == {\n        "uniform",\n        "winner_following",\n        "diversity_preserving",\n    }
+    assert {row["mode"] for row in rows} == {
+        "uniform",
+        "winner_following",
+        "diversity_preserving",
+    }
 
 
 def test_prefix_evaluation_matches_standalone_run() -> None:
