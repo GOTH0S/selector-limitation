@@ -1,6 +1,15 @@
 # Phase 5 protocol — period/universe stress and failure mapping
 
-This phase is specified before inspecting any Phase 5 result.
+The **core experimental grid** in this document was frozen before inspecting the
+initial Phase 5 result: candidate language, data cutoff, costs, rolling period
+windows, universes, search budgets, selector implementations and the original
+full-budget failure bins.
+
+A post-run audit on 2026-10-04 added the sign-based `expansion_map` diagnostic
+and separated the diversity ensemble from single-candidate selector-regret
+classification. Those amendments do not change any frozen candidate, market
+return, search path or selector score; they change only how already-generated
+outcomes are summarized.
 
 ## Question
 

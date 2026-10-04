@@ -110,6 +110,40 @@ This is one historical period and one public universe, not evidence of a univers
 
 Canonical compact outputs are committed in `results/market_summary.csv`, `results/market_ensemble_summary.csv` and `results/market_run.json`. The full per-seed ledger and candidate manifest are produced as GitHub Actions artifacts.
 
+## Experiment 5 — period and universe stress
+
+Phase 4's 2018–2019 result is not treated as the answer. The same frozen
+2,670-candidate search language is stressed across four rolling two-year test
+periods and 12 fixed asset universes.
+
+Every one of the 48 cells has a higher mean ex-post oracle frontier at the full
+2,670-candidate budget than at 25 candidates. But selection frequently fails to
+keep up:
+
+| selector | selector-limited cells | mean selected change | paired degradation |
+|---|---:|---:|---:|
+| family-balanced | 17 / 48 | **+0.104** | 43.1% |
+| mean rank | 20 / 48 | -0.018 | 47.8% |
+| stability LCB | 20 / 48 | -0.031 | 47.8% |
+| mean fold | 25 / 48 | -0.183 | 53.5% |
+| single fold | **27 / 48** | **-0.233** | **58.5%** |
+
+The failure is strongly regime-dependent. In 2016–2017, mean-fold selection is
+selector-limited in **12 / 12** universes and its selected future Sharpe falls
+by 0.945 on average as search expands. In 2018–2019, the same selector improves
+in **10 / 12** universes. That contrast is the key qualification to Experiment
+4: repeated validation can help substantially, but not as a universal rule.
+
+The five-candidate diversity ensemble is reported separately as a mitigation,
+not as a selector-regret datapoint. It is positive in 33 / 48 full-budget
+cells, but is negative in every 2016–2017 universe.
+
+**Phase 5 verdict: conditional support.** Search expansion robustly improves the
+reachable set; selector capacity is often the bottleneck, but the sign and size
+of that bottleneck depend on regime and selector.
+
+See [PHASE5_RESULT.md](PHASE5_RESULT.md) for the full audit and result.
+
 ## Reproduce
 
 ```bash
@@ -120,6 +154,7 @@ python -m selector_limitation.experiment --out results/synthetic_sweep.csv
 python -m selector_limitation.family_experiment --out results/family_search_sweep.csv
 python -m selector_limitation.selector_experiment --out results/selector_sweep.csv
 python -m selector_limitation.market_experiment --search-seeds 100
+python -m selector_limitation.stress_experiment --search-seeds 100
 ```
 
 The market command downloads only the pinned snapshot, verifies its hash, truncates it to the frozen cutoff and regenerates the candidate zoo and summaries.
