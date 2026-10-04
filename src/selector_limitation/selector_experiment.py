@@ -24,7 +24,6 @@ DEFAULT_BUDGETS = (16, 25, 50, 100, 250, 500, 1000)
 DEFAULT_MODES: tuple[SearchMode, ...] = (
     "uniform",
     "winner_following",
-    "diversity_preserving",
 )
 DEFAULT_SELECTORS: tuple[Selector, ...] = (
     SingleFoldWinner(),
