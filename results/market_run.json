@@ -1,0 +1,114 @@
+{
+  "data_source": {
+    "repository": "marcoreyess22/jump-risk-engine",
+    "commit": "3187e756957af549e54e470e8064dbe782d319b8",
+    "path": "data/prices.csv",
+    "sha256": "0f1c7534aed1afc5d431be99f5c0357243e7357905e60b74b40a8711689f71bd"
+  },
+  "data_start": "2007-01-03",
+  "data_end": "2019-12-31",
+  "candidates": 2670,
+  "cost_bps": 5.0,
+  "development_folds": [
+    [
+      "2010-01-04",
+      "2011-12-30"
+    ],
+    [
+      "2012-01-03",
+      "2013-12-31"
+    ],
+    [
+      "2014-01-02",
+      "2015-12-31"
+    ],
+    [
+      "2016-01-04",
+      "2017-12-29"
+    ]
+  ],
+  "test_period": [
+    "2018-01-02",
+    "2019-12-31"
+  ],
+  "search_seeds": 100,
+  "max_budget_summary": [
+    {
+      "budget": 2670,
+      "selector": "bootstrap_lcb",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "family_balanced",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "mean_fold",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "mean_rank",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "nested_complexity",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "single_fold",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": -0.37907879796941096,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 2.238025145311361,
+      "mean_frontier_efficiency": -0.11659939738439473,
+      "selected_positive_rate": 0.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    },
+    {
+      "budget": 2670,
+      "selector": "stability_lcb",
+      "search_seeds": 100,
+      "mean_selected_test_sharpe": 0.5618176772530484,
+      "mean_oracle_test_sharpe": 1.8589463473419494,
+      "mean_selection_regret": 1.2971286700889022,
+      "mean_frontier_efficiency": 0.352834308235716,
+      "selected_positive_rate": 1.0,
+      "mean_validation_test_rank_corr": 0.05499607640217876
+    }
+  ]
+}

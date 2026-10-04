@@ -1,38 +1,68 @@
 # selector-limitation
 
-More search is only useful if selection keeps up.
+What happens when a research process gets better at generating candidates faster than it gets better at choosing among them?
 
-Suppose a research process generates `N` candidate signals. Candidate `i` has an unknown true quality `q_i`, but the researcher only sees a noisy validation estimate `v_i`. As `N` grows, the best candidate the process *could* have selected can improve while the candidate it *actually* selects becomes increasingly dominated by validation noise.
+For a candidate set of size `N`, let `Q_N` be the true quality of the best candidate discovered and `q_selected` the true quality of the candidate chosen from development evidence. The gap
 
-This repository studies that gap directly.
+```text
+selection regret = Q_N - q_selected
+```
 
-The first experiment is synthetic so the latent quality of every candidate is known. That lets us separate two quantities that are usually conflated in backtests:
+is the object of study here.
 
-- **reachable frontier** — the true quality of the best candidate generated;
-- **selected quality** — the true quality of the candidate chosen using validation data only.
+![Frontier versus selected quality](figures/frontier.svg)
 
-Their difference is **selection regret**.
+## Main results
 
-The initial sweep varies candidate count and validation noise under a fixed data-generating process. Later experiments will add correlated candidate families, adaptive search, alternative selectors, and a stale public-market replication.
+Under ordinary Gaussian validation noise, larger searches still improve the selected candidate, but the reachable frontier improves faster. Under heavy-tailed validation noise, the sign can reverse: with noise `2.0`, increasing the search from 10 to 1,000 candidates raises the oracle quality from **1.53 to 3.24** while selected quality falls from **0.74 to 0.30**.
 
-## First result
+![Heavy-tailed regret surface](figures/regret_phase.svg)
 
-With validation noise fixed at `2.0`, a 2,000-seed sweep gives:
+Candidates are also grouped into correlated families. A winner-following search spends 95% of new proposals in the family containing the current validation winner; a diversity-preserving search mostly allocates to the least-sampled families.
 
-| candidates | oracle quality | selected quality | regret | oracle hit rate |
+At 1,000 proposals, winner-following leaves only **1.15 effective families** and reaches an oracle quality of **2.22**. Uniform and diversity-preserving search retain roughly eight effective families and reach **2.36**.
+
+![Search policy comparison](figures/search_policy.svg)
+
+The historical check uses 2,670 generic price-only candidates on eight liquid ETFs, with 5 bps turnover costs. Development evidence ends in 2017; 2018–2019 is used only for evaluation.
+
+| budget | ex-post frontier | single fold | four-fold mean | 5-candidate ensemble |
 |---:|---:|---:|---:|---:|
-| 10 | 1.529 | 0.720 | 0.809 | 27.5% |
-| 100 | 2.501 | 1.133 | 1.368 | 9.5% |
-| 1,000 | 3.239 | 1.445 | 1.794 | 4.0% |
+| 25 | 1.05 | -0.09 | 0.10 | -0.16 |
+| 500 | 1.57 | -0.27 | 0.41 | 0.33 |
+| 1,000 | 1.70 | -0.37 | 0.53 | 0.41 |
+| 2,670 | 1.86 | -0.38 | 0.56 | **0.73** |
 
-The selector still benefits from more search in absolute terms, but it captures the expanding frontier much more slowly. The gap is the object of study here; later experiments will test when it becomes large enough that additional search actually degrades realised selection quality and which selectors recover the lost frontier.
+The frontier is ex post: it measures what happened to be present in the candidate set and is never available to the selector.
 
-## Run
+![Historical replication](figures/market_replication.svg)
+
+A wider stress run across four two-year test periods and 12 fixed universes is less tidy. The reachable frontier rises from budget 25 to 2,670 in all 48 cells, but single-fold selection gets worse in 27 of them and four-fold mean selection in 25. The effect is therefore real but regime-dependent.
+
+[RESULTS.md](RESULTS.md) has the fuller tables and setup.
+
+## Reproduce
 
 ```bash
 python -m pip install -e ".[dev]"
-pytest -q
-python -m selector_limitation.experiment --out results/synthetic_sweep.csv
+python -m selector_limitation.reproduce
 ```
 
-The experiment writes one row per `(noise, candidate_count)` cell with Monte Carlo means and quantiles. No test-set or latent-quality information is available to the selector.
+That regenerates the synthetic sweeps and figures. To rerun the pinned historical data experiments as well:
+
+```bash
+python -m selector_limitation.reproduce --market
+```
+
+The market snapshot is downloaded from a pinned public commit and SHA-256 checked before use.
+
+## Layout
+
+```text
+src/selector_limitation/   experiments and selectors
+tests/                     invariants and timing checks
+results/                   compact machine-readable outputs
+figures/                   generated from results/
+```
+
+Python 3.11+; NumPy, Matplotlib, pytest and Ruff. Apache-2.0.

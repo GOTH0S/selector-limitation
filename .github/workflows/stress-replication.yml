@@ -1,0 +1,45 @@
+name: stress-replication
+
+on:
+  push:
+    paths:
+      - "src/selector_limitation/stress_experiment.py"
+      - "src/selector_limitation/market_experiment.py"
+      - "src/selector_limitation/candidate_zoo.py"
+      - "tests/test_stress_experiment.py"
+      - ".github/workflows/stress-replication.yml"
+  pull_request:
+    paths:
+      - "src/selector_limitation/stress_experiment.py"
+      - "src/selector_limitation/market_experiment.py"
+      - "src/selector_limitation/candidate_zoo.py"
+      - "tests/test_stress_experiment.py"
+      - ".github/workflows/stress-replication.yml"
+  workflow_dispatch:
+
+jobs:
+  stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Run period/universe stress
+        run: python -m selector_limitation.stress_experiment --search-seeds 100
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stress-replication-results
+          path: |
+            results/stress_ledger.csv
+            results/stress_summary.csv
+            results/failure_map.csv
+            results/stress_selector_summary.csv
+            results/expansion_map.csv
+            results/ensemble_stress.csv
+            results/bootstrap_period_stress.csv
+            results/stress_run.json
