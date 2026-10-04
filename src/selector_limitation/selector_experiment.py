@@ -21,7 +21,11 @@ from .selectors import (
 )
 
 DEFAULT_BUDGETS = (16, 25, 50, 100, 250, 500, 1000)
-DEFAULT_MODES: tuple[SearchMode, ...] = ("uniform", "winner_following")
+DEFAULT_MODES: tuple[SearchMode, ...] = (
+    "uniform",
+    "winner_following",
+    "diversity_preserving",
+)
 DEFAULT_SELECTORS: tuple[Selector, ...] = (
     SingleFoldWinner(),
     ValidationWinner(),
@@ -76,15 +80,25 @@ def evaluate_selector(
     )
 
 
-def summarize_selector_trials(trials: list[SelectorTrialResult]) -> dict[str, float]:
+def summarize_selector_trials(
+    trials: list[SelectorTrialResult],
+) -> dict[str, float]:
     if not trials:
         raise ValueError("trials cannot be empty")
     return {
-        "mean_selected_quality": float(np.mean([trial.selected_quality for trial in trials])),
-        "mean_oracle_quality": float(np.mean([trial.oracle_quality for trial in trials])),
+        "mean_selected_quality": float(
+            np.mean([trial.selected_quality for trial in trials])
+        ),
+        "mean_oracle_quality": float(
+            np.mean([trial.oracle_quality for trial in trials])
+        ),
         "mean_regret": float(np.mean([trial.regret for trial in trials])),
-        "mean_efficiency": float(np.mean([trial.efficiency for trial in trials])),
-        "oracle_hit_rate": float(np.mean([trial.oracle_hit for trial in trials])),
+        "mean_efficiency": float(
+            np.mean([trial.efficiency for trial in trials])
+        ),
+        "oracle_hit_rate": float(
+            np.mean([trial.oracle_hit for trial in trials])
+        ),
         "best_family_hit_rate": float(
             np.mean([trial.selected_family_is_best for trial in trials])
         ),
@@ -101,9 +115,13 @@ def run_selector_sweep(
         raise ValueError("seeds must be positive")
     spec = spec or FamilyWorldSpec(validation_folds=5)
     if spec.validation_folds < 2:
-        raise ValueError("selector comparison requires at least two validation folds")
+        raise ValueError(
+            "selector comparison requires at least two validation folds"
+        )
 
-    trials: dict[tuple[SearchMode, str, int], list[SelectorTrialResult]] = {
+    trials: dict[
+        tuple[SearchMode, str, int], list[SelectorTrialResult]
+    ] = {
         (mode, selector.name, budget): []
         for mode in DEFAULT_MODES
         for selector in selectors
@@ -113,11 +131,17 @@ def run_selector_sweep(
 
     for mode in DEFAULT_MODES:
         for seed in range(seeds):
-            trace = run_family_search(spec, budget=max_budget, mode=mode, seed=seed)
+            trace = run_family_search(
+                spec, budget=max_budget, mode=mode, seed=seed
+            )
             for budget in DEFAULT_BUDGETS:
                 for selector in selectors:
                     trials[(mode, selector.name, budget)].append(
-                        evaluate_selector(trace, budget=budget, selector=selector)
+                        evaluate_selector(
+                            trace,
+                            budget=budget,
+                            selector=selector,
+                        )
                     )
 
     rows: list[dict[str, float | int | str]] = []
@@ -131,7 +155,9 @@ def run_selector_sweep(
                         "budget": budget,
                         "seeds": seeds,
                         "validation_folds": spec.validation_folds,
-                        "family_validation_bias_scale": spec.family_validation_bias_scale,
+                        "family_validation_bias_scale": (
+                            spec.family_validation_bias_scale
+                        ),
                         "validation_noise": spec.validation_noise,
                         **summarize_selector_trials(
                             trials[(mode, selector.name, budget)]
@@ -141,7 +167,9 @@ def run_selector_sweep(
     return rows
 
 
-def write_csv(rows: list[dict[str, float | int | str]], out: Path) -> None:
+def write_csv(
+    rows: list[dict[str, float | int | str]], out: Path
+) -> None:
     if not rows:
         raise ValueError("rows cannot be empty")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -152,9 +180,15 @@ def write_csv(rows: list[dict[str, float | int | str]], out: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Compare selectors on identical search traces")
+    parser = argparse.ArgumentParser(
+        description="Compare selectors on identical search traces"
+    )
     parser.add_argument("--seeds", type=int, default=1000)
-    parser.add_argument("--out", type=Path, default=Path("results/selector_sweep.csv"))
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=Path("results/selector_sweep.csv"),
+    )
     return parser.parse_args()
 
 

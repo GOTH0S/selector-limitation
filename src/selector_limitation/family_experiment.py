@@ -13,7 +13,11 @@ from .search import FamilyWorldSpec, SearchMode, SearchTrace, run_family_search
 from .selectors import ValidationWinner
 
 DEFAULT_BUDGETS = (16, 25, 50, 100, 250, 500, 1000)
-DEFAULT_MODES: tuple[SearchMode, ...] = ("uniform", "winner_following")
+DEFAULT_MODES: tuple[SearchMode, ...] = (
+    "uniform",
+    "winner_following",
+    "diversity_preserving",
+)
 
 
 @dataclass(frozen=True)
@@ -60,7 +64,9 @@ def evaluate_family_trace(trace: SearchTrace, *, budget: int) -> FamilyTrialResu
         regret=outcome.regret,
         oracle_hit=outcome.selected_index == outcome.oracle_index,
         selected_family_is_best=selected_family == best_family,
-        selected_family_true_mean=float(trace.family_true_quality[selected_family]),
+        selected_family_true_mean=float(
+            trace.family_true_quality[selected_family]
+        ),
         best_family_true_mean=float(trace.family_true_quality[best_family]),
         allocation_hhi=allocation_hhi,
         effective_family_count=1.0 / allocation_hhi,
@@ -78,7 +84,9 @@ def run_family_trial(
     return evaluate_family_trace(trace, budget=budget)
 
 
-def summarize_family_trials(trials: list[FamilyTrialResult]) -> dict[str, float]:
+def summarize_family_trials(
+    trials: list[FamilyTrialResult],
+) -> dict[str, float]:
     if not trials:
         raise ValueError("trials cannot be empty")
 
@@ -94,7 +102,9 @@ def summarize_family_trials(trials: list[FamilyTrialResult]) -> dict[str, float]
         "effective_family_count",
     )
     return {
-        f"mean_{field}": float(np.mean([getattr(trial, field) for trial in trials]))
+        f"mean_{field}": float(
+            np.mean([getattr(trial, field) for trial in trials])
+        )
         for field in fields
     }
 
@@ -108,14 +118,20 @@ def run_family_sweep(
         raise ValueError("seeds must be positive")
     spec = spec or FamilyWorldSpec()
 
-    trials_by_cell: dict[tuple[SearchMode, int], list[FamilyTrialResult]] = {
-        (mode, budget): [] for mode in DEFAULT_MODES for budget in DEFAULT_BUDGETS
+    trials_by_cell: dict[
+        tuple[SearchMode, int], list[FamilyTrialResult]
+    ] = {
+        (mode, budget): []
+        for mode in DEFAULT_MODES
+        for budget in DEFAULT_BUDGETS
     }
     max_budget = max(DEFAULT_BUDGETS)
 
     for mode in DEFAULT_MODES:
         for seed in range(seeds):
-            trace = run_family_search(spec, budget=max_budget, mode=mode, seed=seed)
+            trace = run_family_search(
+                spec, budget=max_budget, mode=mode, seed=seed
+            )
             for budget in DEFAULT_BUDGETS:
                 trials_by_cell[(mode, budget)].append(
                     evaluate_family_trace(trace, budget=budget)
@@ -130,16 +146,23 @@ def run_family_sweep(
                     "budget": budget,
                     "seeds": seeds,
                     "n_families": spec.n_families,
-                    "family_validation_bias_scale": spec.family_validation_bias_scale,
+                    "family_validation_bias_scale": (
+                        spec.family_validation_bias_scale
+                    ),
                     "validation_noise": spec.validation_noise,
                     "exploit_probability": spec.exploit_probability,
-                    **summarize_family_trials(trials_by_cell[(mode, budget)]),
+                    "diversity_probability": spec.diversity_probability,
+                    **summarize_family_trials(
+                        trials_by_cell[(mode, budget)]
+                    ),
                 }
             )
     return rows
 
 
-def write_csv(rows: list[dict[str, float | int | str]], out: Path) -> None:
+def write_csv(
+    rows: list[dict[str, float | int | str]], out: Path
+) -> None:
     if not rows:
         raise ValueError("rows cannot be empty")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -150,9 +173,15 @@ def write_csv(rows: list[dict[str, float | int | str]], out: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run correlated-family search experiments")
+    parser = argparse.ArgumentParser(
+        description="Run correlated-family search experiments"
+    )
     parser.add_argument("--seeds", type=int, default=2000)
-    parser.add_argument("--out", type=Path, default=Path("results/family_search_sweep.csv"))
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=Path("results/family_search_sweep.csv"),
+    )
     return parser.parse_args()
 
 

@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 
 from .population import CandidatePopulation
 
-SearchMode = Literal["uniform", "winner_following"]
+SearchMode = Literal["uniform", "winner_following", "diversity_preserving"]
 IntArray = NDArray[np.int64]
 FloatArray = NDArray[np.float64]
 
@@ -23,6 +23,7 @@ class FamilyWorldSpec:
     validation_noise: float = 1.0
     family_validation_bias_scale: float = 2.0
     exploit_probability: float = 0.95
+    diversity_probability: float = 0.95
 
     def __post_init__(self) -> None:
         if self.n_families < 2:
@@ -41,6 +42,8 @@ class FamilyWorldSpec:
             raise ValueError("family_validation_bias_scale must be non-negative")
         if not 0.0 <= self.exploit_probability <= 1.0:
             raise ValueError("exploit_probability must lie in [0, 1]")
+        if not 0.0 <= self.diversity_probability <= 1.0:
+            raise ValueError("diversity_probability must lie in [0, 1]")
 
     @property
     def initial_budget(self) -> int:
@@ -74,7 +77,8 @@ def _draw_candidate(
     spec: FamilyWorldSpec,
 ) -> tuple[float, FloatArray]:
     quality = float(
-        family_true_quality[family] + rng.normal(0.0, spec.within_family_quality_scale)
+        family_true_quality[family]
+        + rng.normal(0.0, spec.within_family_quality_scale)
     )
     scores = (
         quality
@@ -93,17 +97,21 @@ def run_family_search(
 ) -> SearchTrace:
     if budget < spec.initial_budget:
         raise ValueError(f"budget must be at least {spec.initial_budget}")
-    if mode not in ("uniform", "winner_following"):
+    if mode not in ("uniform", "winner_following", "diversity_preserving"):
         raise ValueError(f"unknown search mode: {mode}")
 
     rng = np.random.default_rng(seed)
-    family_true_quality = rng.normal(0.0, spec.family_quality_scale, size=spec.n_families)
+    family_true_quality = rng.normal(
+        0.0, spec.family_quality_scale, size=spec.n_families
+    )
     family_validation_bias = rng.normal(
         0.0, spec.family_validation_bias_scale, size=spec.n_families
     )
 
     true_quality = np.empty(budget, dtype=np.float64)
-    validation_scores = np.empty((budget, spec.validation_folds), dtype=np.float64)
+    validation_scores = np.empty(
+        (budget, spec.validation_folds), dtype=np.float64
+    )
     family_ids = np.empty(budget, dtype=np.int64)
     family_counts = np.zeros(spec.n_families, dtype=np.int64)
 
@@ -137,8 +145,15 @@ def run_family_search(
     while cursor < budget:
         if mode == "uniform":
             family = int(rng.integers(spec.n_families))
-        elif rng.random() < spec.exploit_probability:
-            family = best_family
+        elif mode == "winner_following":
+            family = (
+                best_family
+                if rng.random() < spec.exploit_probability
+                else int(rng.integers(spec.n_families))
+            )
+        elif rng.random() < spec.diversity_probability:
+            least_used = np.flatnonzero(family_counts == family_counts.min())
+            family = int(rng.choice(least_used))
         else:
             family = int(rng.integers(spec.n_families))
         append_candidate(family)
@@ -149,8 +164,12 @@ def run_family_search(
             validation_scores=validation_scores,
         ),
         family_ids=family_ids,
-        family_true_quality=family_true_quality.astype(np.float64, copy=False),
-        family_validation_bias=family_validation_bias.astype(np.float64, copy=False),
+        family_true_quality=family_true_quality.astype(
+            np.float64, copy=False
+        ),
+        family_validation_bias=family_validation_bias.astype(
+            np.float64, copy=False
+        ),
         family_counts=family_counts,
         mode=mode,
     )
