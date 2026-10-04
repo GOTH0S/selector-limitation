@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
 from .experiment import run_sweep, write_csv as write_synthetic
 from .family_experiment import run_family_sweep, write_csv as write_family
@@ -37,7 +37,7 @@ def main() -> None:
         Path("results/robustness_sweep.csv"),
     )
     write_family(
-        run_family_sweep(seeds=2000),
+        run_family_sweep(seeds=500),
         Path("results/family_search_sweep.csv"),
     )
     write_selectors(
