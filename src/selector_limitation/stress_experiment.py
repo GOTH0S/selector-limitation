@@ -281,29 +281,30 @@ def run_cell(
                     )
                 )
 
-            members = _stable_diverse_ensemble(
-                subset,
-                mean_fold,
-                scores.development_returns,
-            )
-            ensemble_returns = scores.test_returns[:, members].mean(axis=1)
-            ensemble_quality = float(
-                annualized_sharpe(ensemble_returns[:, None])[0]
-            )
-            rows.append(
-                _record(
-                    period=period.name,
-                    universe=universe_name,
-                    seed=seed,
-                    budget=budget,
-                    selector="diverse_ensemble",
-                    selected_quality=ensemble_quality,
-                    subset_test=subset_test,
-                    rank_corr=rank_corr,
-                    selected_family="ensemble",
-                    selected_complexity=-1,
+            if budget == candidate_count:
+                members = _stable_diverse_ensemble(
+                    subset,
+                    mean_fold,
+                    scores.development_returns,
                 )
-            )
+                ensemble_returns = scores.test_returns[:, members].mean(axis=1)
+                ensemble_quality = float(
+                    annualized_sharpe(ensemble_returns[:, None])[0]
+                )
+                rows.append(
+                    _record(
+                        period=period.name,
+                        universe=universe_name,
+                        seed=seed,
+                        budget=budget,
+                        selector="diverse_ensemble",
+                        selected_quality=ensemble_quality,
+                        subset_test=subset_test,
+                        rank_corr=rank_corr,
+                        selected_family="ensemble",
+                        selected_complexity=-1,
+                    )
+                )
     return rows
 
 
@@ -388,6 +389,246 @@ def failure_status(oracle: float, selected: float, efficiency: float) -> str:
     return "STRONG_CAPTURE"
 
 
+def classify_expansion(frontier_delta: float, selector_delta: float) -> str:
+    if frontier_delta > 0:
+        if selector_delta < 0:
+            return "SELECTOR_LIMITED"
+        if selector_delta > 0:
+            return "FRONTIER_AND_SELECTION_UP"
+        return "FRONTIER_UP_SELECTION_FLAT"
+    if frontier_delta < 0:
+        if selector_delta < 0:
+            return "BROAD_DETERIORATION"
+        if selector_delta > 0:
+            return "SELECTION_UP_FRONTIER_DOWN"
+        return "FRONTIER_DOWN_SELECTION_FLAT"
+    if selector_delta < 0:
+        return "FLAT_FRONTIER_SELECTION_DOWN"
+    if selector_delta > 0:
+        return "FLAT_FRONTIER_SELECTION_UP"
+    return "FLAT"
+
+
+def build_expansion_map(
+    rows: list[dict[str, float | int | str]],
+    full_budget: int,
+) -> list[dict[str, float | int | str]]:
+    start_budget = min(int(row["budget"]) for row in rows)
+    selectors = sorted(
+        {
+            str(row["selector"])
+            for row in rows
+            if str(row["selector"]) != "diverse_ensemble"
+        }
+    )
+    scenarios = sorted(
+        {(str(row["period"]), str(row["universe"])) for row in rows}
+    )
+
+    output: list[dict[str, float | int | str]] = []
+    for period, universe in scenarios:
+        for selector in selectors:
+            start_rows = [
+                row
+                for row in rows
+                if str(row["period"]) == period
+                and str(row["universe"]) == universe
+                and int(row["budget"]) == start_budget
+                and str(row["selector"]) == selector
+            ]
+            end_rows = [
+                row
+                for row in rows
+                if str(row["period"]) == period
+                and str(row["universe"]) == universe
+                and int(row["budget"]) == full_budget
+                and str(row["selector"]) == selector
+            ]
+            start_by_seed = {
+                int(row["search_seed"]): row for row in start_rows
+            }
+            end_by_seed = {
+                int(row["search_seed"]): row for row in end_rows
+            }
+            shared = sorted(set(start_by_seed) & set(end_by_seed))
+            if not shared:
+                raise ValueError(
+                    f"no paired seeds for {period}/{universe}/{selector}"
+                )
+
+            frontier_start = float(
+                np.mean(
+                    [
+                        float(start_by_seed[seed]["oracle_test_sharpe"])
+                        for seed in shared
+                    ]
+                )
+            )
+            frontier_full = float(
+                np.mean(
+                    [
+                        float(end_by_seed[seed]["oracle_test_sharpe"])
+                        for seed in shared
+                    ]
+                )
+            )
+            selected_start = float(
+                np.mean(
+                    [
+                        float(start_by_seed[seed]["selected_test_sharpe"])
+                        for seed in shared
+                    ]
+                )
+            )
+            selected_full = float(
+                np.mean(
+                    [
+                        float(end_by_seed[seed]["selected_test_sharpe"])
+                        for seed in shared
+                    ]
+                )
+            )
+            frontier_delta = frontier_full - frontier_start
+            selector_delta = selected_full - selected_start
+
+            output.append(
+                {
+                    "period": period,
+                    "universe": universe,
+                    "selector": selector,
+                    "start_budget": start_budget,
+                    "full_budget": full_budget,
+                    "frontier_start": frontier_start,
+                    "frontier_full": frontier_full,
+                    "frontier_delta": frontier_delta,
+                    "frontier_expand_rate": float(
+                        np.mean(
+                            [
+                                float(
+                                    end_by_seed[seed]["oracle_test_sharpe"]
+                                )
+                                > float(
+                                    start_by_seed[seed]["oracle_test_sharpe"]
+                                )
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "selected_start": selected_start,
+                    "selected_full": selected_full,
+                    "selector_delta": selector_delta,
+                    "selector_degrade_rate": float(
+                        np.mean(
+                            [
+                                float(
+                                    end_by_seed[seed]["selected_test_sharpe"]
+                                )
+                                < float(
+                                    start_by_seed[seed]["selected_test_sharpe"]
+                                )
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "regret_start": float(
+                        np.mean(
+                            [
+                                float(
+                                    start_by_seed[seed]["selection_regret"]
+                                )
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "regret_full": float(
+                        np.mean(
+                            [
+                                float(end_by_seed[seed]["selection_regret"])
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "rank_corr_start": float(
+                        np.mean(
+                            [
+                                float(
+                                    start_by_seed[seed][
+                                        "validation_test_rank_corr"
+                                    ]
+                                )
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "rank_corr_full": float(
+                        np.mean(
+                            [
+                                float(
+                                    end_by_seed[seed][
+                                        "validation_test_rank_corr"
+                                    ]
+                                )
+                                for seed in shared
+                            ]
+                        )
+                    ),
+                    "classification": classify_expansion(
+                        frontier_delta, selector_delta
+                    ),
+                }
+            )
+    return output
+
+
+def build_ensemble_stress(
+    summary: list[dict[str, float | int | str]],
+    full_budget: int,
+) -> list[dict[str, float | int | str]]:
+    lookup = {
+        (
+            str(row["period"]),
+            str(row["universe"]),
+            str(row["selector"]),
+        ): row
+        for row in summary
+        if int(row["budget"]) == full_budget
+    }
+    scenarios = sorted(
+        {
+            (period, universe)
+            for period, universe, selector in lookup
+            if selector == "diverse_ensemble"
+        }
+    )
+    output: list[dict[str, float | int | str]] = []
+    for period, universe in scenarios:
+        ensemble = lookup[(period, universe, "diverse_ensemble")]
+        mean_fold = lookup[(period, universe, "mean_fold")]
+        ensemble_sharpe = float(ensemble["mean_selected_test_sharpe"])
+        mean_fold_sharpe = float(mean_fold["mean_selected_test_sharpe"])
+        candidate_mean = float(mean_fold["mean_candidate_test_sharpe"])
+        output.append(
+            {
+                "period": period,
+                "universe": universe,
+                "ensemble_test_sharpe": ensemble_sharpe,
+                "mean_fold_test_sharpe": mean_fold_sharpe,
+                "candidate_oracle_test_sharpe": float(
+                    mean_fold["mean_oracle_test_sharpe"]
+                ),
+                "mean_candidate_test_sharpe": candidate_mean,
+                "ensemble_minus_mean_fold": (
+                    ensemble_sharpe - mean_fold_sharpe
+                ),
+                "ensemble_minus_mean_candidate": (
+                    ensemble_sharpe - candidate_mean
+                ),
+                "ensemble_positive": int(ensemble_sharpe > 0),
+            }
+        )
+    return output
+
+
 def build_failure_map(
     summary: list[dict[str, float | int | str]],
     full_budget: int,
@@ -395,6 +636,8 @@ def build_failure_map(
     rows = []
     for row in summary:
         if int(row["budget"]) != full_budget:
+            continue
+        if str(row["selector"]) == "diverse_ensemble":
             continue
         oracle = float(row["mean_oracle_test_sharpe"])
         selected = float(row["mean_selected_test_sharpe"])
@@ -563,6 +806,16 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/stress_selector_summary.csv"),
     )
     parser.add_argument(
+        "--expansion-map-out",
+        type=Path,
+        default=Path("results/expansion_map.csv"),
+    )
+    parser.add_argument(
+        "--ensemble-out",
+        type=Path,
+        default=Path("results/ensemble_stress.csv"),
+    )
+    parser.add_argument(
         "--bootstrap-out",
         type=Path,
         default=Path("results/bootstrap_period_stress.csv"),
@@ -607,11 +860,15 @@ def main() -> None:
     summary = summarize(rows)
     failure_map = build_failure_map(summary, len(specs))
     selector_summary = summarize_selectors(failure_map)
+    expansion_map = build_expansion_map(rows, len(specs))
+    ensemble_stress = build_ensemble_stress(summary, len(specs))
 
     _write_csv(rows, args.ledger_out)
     _write_csv(summary, args.summary_out)
     _write_csv(failure_map, args.failure_map_out)
     _write_csv(selector_summary, args.selector_summary_out)
+    _write_csv(expansion_map, args.expansion_map_out)
+    _write_csv(ensemble_stress, args.ensemble_out)
     _write_csv(bootstrap_rows, args.bootstrap_out)
 
     payload = {
@@ -635,6 +892,16 @@ def main() -> None:
         ],
         "universes": {name: list(tickers) for name, tickers in UNIVERSES.items()},
         "phase4_reproduction": benchmark,
+        "failure_map_scope": "single-candidate selectors only",
+        "expansion_map": {
+            "start_budget": 25,
+            "full_budget": len(specs),
+            "classification": "sign-based; no tuned thresholds",
+            "paired_by_search_seed": True,
+        },
+        "ensemble_scope": (
+            "full-budget mitigation stress; not assigned candidate selection regret"
+        ),
         "failure_bins": {
             "low_identifiability_abs_rank_corr_lt": 0.10,
             "weak_capture_efficiency_lt": 0.25,

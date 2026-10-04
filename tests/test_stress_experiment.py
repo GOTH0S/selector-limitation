@@ -6,6 +6,8 @@ from selector_limitation.stress_experiment import (
     PERIODS,
     UNIVERSES,
     _stable_argmax,
+    build_failure_map,
+    classify_expansion,
     failure_status,
     subset_panel,
     validate_period,
@@ -62,3 +64,39 @@ def test_stable_argmax_ignores_subset_order_for_ties() -> None:
 
 def test_stress_universes_are_unique_asset_sets() -> None:
     assert len(set(UNIVERSES.values())) == len(UNIVERSES)
+
+
+def test_expansion_classification_is_sign_based() -> None:
+    assert classify_expansion(1.0, -0.1) == "SELECTOR_LIMITED"
+    assert classify_expansion(1.0, 0.1) == "FRONTIER_AND_SELECTION_UP"
+    assert classify_expansion(-1.0, -0.1) == "BROAD_DETERIORATION"
+    assert classify_expansion(0.0, -0.1) == "FLAT_FRONTIER_SELECTION_DOWN"
+
+
+def test_failure_map_excludes_ensemble_mitigation() -> None:
+    common = {
+        "period": "P18_19",
+        "universe": "FULL8",
+        "budget": 2670,
+        "search_seeds": 100,
+        "mean_oracle_test_sharpe": 1.8,
+        "mean_candidate_test_sharpe": 0.0,
+        "mean_selection_regret": 1.2,
+        "mean_frontier_efficiency": 0.3,
+        "selected_positive_rate": 1.0,
+        "mean_validation_test_rank_corr": 0.05,
+    }
+    rows = [
+        {
+            **common,
+            "selector": "mean_fold",
+            "mean_selected_test_sharpe": 0.6,
+        },
+        {
+            **common,
+            "selector": "diverse_ensemble",
+            "mean_selected_test_sharpe": 0.8,
+        },
+    ]
+    result = build_failure_map(rows, 2670)
+    assert [row["selector"] for row in result] == ["mean_fold"]

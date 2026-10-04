@@ -46,6 +46,8 @@ jobs:
             results/stress_summary.csv
             results/failure_map.csv
             results/stress_selector_summary.csv
+            results/expansion_map.csv
+            results/ensemble_stress.csv
             results/bootstrap_period_stress.csv
             results/stress_run.json
 
@@ -58,6 +60,8 @@ jobs:
             results/stress_summary.csv \
             results/failure_map.csv \
             results/stress_selector_summary.csv \
+            results/expansion_map.csv \
+            results/ensemble_stress.csv \
             results/bootstrap_period_stress.csv \
             results/stress_run.json
           if git diff --cached --quiet; then

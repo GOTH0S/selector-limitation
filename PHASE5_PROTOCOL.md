@@ -77,7 +77,7 @@ same shape at every budget.
 
 ## Selectors
 
-The factorial period × universe grid evaluates:
+The factorial period × universe grid evaluates the single-candidate selectors:
 
 - single_fold
 - mean_fold
@@ -85,7 +85,12 @@ The factorial period × universe grid evaluates:
 - stability_lcb
 - family_balanced
 - nested_complexity
-- diverse_ensemble
+
+The diversity-aware ensemble is retained as a **separate mitigation diagnostic**
+at the full candidate budget. It is not classified with the single-candidate
+selectors because an ensemble is a different decision object and its Sharpe
+should not be interpreted as selection regret against a single-candidate
+oracle.
 
 The block-bootstrap LCB is computationally heavier and stochastic conditional
 on its resampling seed. It is therefore stress-tested across all four **period**
@@ -93,11 +98,28 @@ windows on FULL8 with the same 128-draw implementation and fixed bootstrap seed
 used in Phase 4, but it is not included in the 12-universe factorial grid. This
 is an explicit scope choice, not a result-driven omission.
 
+## Expansion map
+
+The central Phase 5 diagnostic pairs every search seed at budget 25 with the
+same seed at the full 2,670-candidate budget. For each period, universe and
+single-candidate selector it records:
+
+- the change in the ex-post reachable frontier;
+- the change in selected test Sharpe;
+- the fraction of paired search paths on which selection deteriorates;
+- the change in selection regret;
+- development-to-test rank correlation at both endpoints.
+
+The classification is deliberately sign-based rather than threshold-tuned.
+`SELECTOR_LIMITED` means the reachable frontier increased while selected
+quality fell. `FRONTIER_AND_SELECTION_UP` means both improved. Other labels
+cover the remaining sign combinations.
+
 ## Failure map
 
-The failure map uses only the full 2,670-candidate budget and the four fixed
-rolling period windows. Bins are descriptive diagnostics, not significance
-tests:
+A complementary failure map uses only the full 2,670-candidate budget and the
+four fixed rolling period windows. It covers **single-candidate selectors
+only**. Bins are descriptive diagnostics, not significance tests:
 
 - `NO_POSITIVE_FRONTIER`: ex-post oracle Sharpe <= 0;
 - `NEGATIVE_SELECTION`: oracle > 0 but selected Sharpe <= 0;
@@ -129,8 +151,10 @@ Failure of this invariant invalidates the Phase 5 run.
 Canonical compact outputs:
 
 - `results/stress_summary.csv`
+- `results/expansion_map.csv`
 - `results/failure_map.csv`
 - `results/stress_selector_summary.csv`
+- `results/ensemble_stress.csv`
 - `results/bootstrap_period_stress.csv`
 - `results/stress_run.json`
 
