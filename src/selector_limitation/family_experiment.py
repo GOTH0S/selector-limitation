@@ -176,7 +176,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run correlated-family search experiments"
     )
-    parser.add_argument("--seeds", type=int, default=2000)
+    parser.add_argument("--seeds", type=int, default=500)
     parser.add_argument(
         "--out",
         type=Path,
