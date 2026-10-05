@@ -77,11 +77,9 @@ Across four test periods and 12 fixed universes, the best available candidate im
 
 [RESULTS.md](RESULTS.md) has the remaining setup and tables.
 
-## Public scope
+## Related
 
-This is a public research experiment, not a production strategy. The market candidate language and data are deliberately generic and stale; no production signals or current research features are included.
-
-Related: [concept-recomposition](https://github.com/GOTH0S/concept-recomposition), a separate experiment on whether reusable intermediate representations expand what a bounded search can reach.
+See: [concept-recomposition](https://github.com/GOTH0S/concept-recomposition), a separate experiment on whether reusable intermediate representations expand what a bounded search can reach.
 
 ## Reproduce
 
